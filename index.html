@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scientific Calculator</title>
+<link rel="stylesheet" href="style.css">
+<script>
+  // Resolve the theme before first paint so there is no flash of the wrong one.
+  // Kept inline on purpose: moving this into app.js would apply the theme
+  // after the page has already painted in the wrong colours.
+  (function () {
+    var saved = null;
+    try { saved = localStorage.getItem('sciCalc.theme'); } catch (e) { /* private mode */ }
+    if (saved !== 'light' && saved !== 'dark') {
+      saved = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)
+        ? 'light' : 'dark';
+    }
+    document.documentElement.setAttribute('data-theme', saved);
+  })();
+</script>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <h1>Scientific Calculator</h1>
+    <button class="theme-btn" id="themeBtn" type="button">
+      <span class="icon" id="themeIcon" aria-hidden="true">&#9789;</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </header>
+
+  <section class="calc">
+    <div class="screen">
+      <textarea id="expr" class="expr" rows="1" spellcheck="false"
+                autocomplete="off" autocapitalize="off"
+                placeholder="0" aria-label="Expression"></textarea>
+      <div id="result" class="result"></div>
+    </div>
+
+    <div class="pad" id="pad">
+      <div class="nav-row" id="navRow">
+        <button class="btn mode" data-action="inv" id="btnInv">2nd</button>
+        <button class="btn mode" data-action="angle" id="btnAngle">DEG</button>
+        <div class="nav-pad" id="navPad" aria-label="Directional pad">
+          <button class="btn dir-dpad" id="dirPad" type="button" aria-label="Direction pad">
+            <span class="dp-up">&#9650;</span>
+            <span class="dp-down">&#9660;</span>
+            <span class="dp-left">&#9664;</span>
+            <span class="dp-right">&#9654;</span>
+          </button>
+        </div>
+        <button class="btn warn" data-action="clear">AC</button>
+        <button class="btn warn" data-action="back">DEL</button>
+      </div>
+
+      <div class="pad-grid">
+        <button class="btn num" data-insert="7">7</button>
+        <button class="btn num" data-insert="8">8</button>
+        <button class="btn num" data-insert="9">9</button>
+        <button class="btn op" data-insert="/">&divide;</button>
+        <button class="btn op" data-insert="+">+</button>
+        <button class="btn num" data-insert="4">4</button>
+        <button class="btn num" data-insert="5">5</button>
+        <button class="btn num" data-insert="6">6</button>
+        <button class="btn op" data-insert="-">&minus;</button>
+        <button class="btn op" data-insert="*">&times;</button>
+        <button class="btn num" data-insert="1">1</button>
+        <button class="btn num" data-insert="2">2</button>
+        <button class="btn num" data-insert="3">3</button>
+        <button class="btn fn" data-insert="(">(</button>
+        <button class="btn fn" data-insert=")">)</button>
+        <button class="btn num" data-insert="0">0</button>
+        <button class="btn num" data-insert=".">.</button>
+        <button class="btn fn" data-action="negate">+/&minus;</button>
+        <button class="btn fn" data-insert="inv(,)">1/x</button>
+        <button class="btn eq" data-action="eval">=</button>
+      </div>
+
+      <div class="pad-grid">
+        <button class="btn fn" data-insert="sin("  data-inv-label="asin"  data-inv-insert="asin(">sin</button>
+        <button class="btn fn" data-insert="cos("  data-inv-label="acos"  data-inv-insert="acos(">cos</button>
+        <button class="btn fn" data-insert="tan("  data-inv-label="atan"  data-inv-insert="atan(">tan</button>
+        <button class="btn fn" data-insert="ln("   data-inv-label="e^x"   data-inv-insert="exp(">ln</button>
+        <button class="btn fn" data-insert="log("  data-inv-label="10^x"  data-inv-insert="10^">log</button>
+        <button class="btn fn" data-insert="pi"    data-inv-label="e"     data-inv-insert="e">pi</button>
+        <button class="btn fn" data-insert="sqrt(" data-inv-label="cbrt(" data-inv-insert="cbrt(">sqrt</button>
+        <button class="btn fn" data-insert="^" data-inv-label="y&#8730;x" data-inv-insert="root(,)">x^y</button>
+        <button class="btn fn" data-insert="^2" data-inv-label="abs(" data-inv-insert="abs(">x^2</button>
+        <button class="btn fn" data-insert="^3">x^3</button>
+        <button class="btn fn" data-insert="!" data-inv-label="x!" data-inv-insert="!">x!</button>
+        <button class="btn fn" data-insert="ans" data-inv-label="round(" data-inv-insert="round(">ans</button>
+        <button class="btn fn" data-insert="sinh(" data-inv-label="asinh" data-inv-insert="asinh(">sinh</button>
+        <button class="btn fn" data-insert="cosh(" data-inv-label="acosh" data-inv-insert="acosh(">cosh</button>
+        <button class="btn fn" data-insert="tanh(" data-inv-label="atanh" data-inv-insert="atanh(">tanh</button>
+        <button class="btn fn" data-insert="hypot(,)">hyp</button>
+        <button class="btn fn" data-insert="mod(,)">mod</button>
+        <button class="btn fn" data-insert="log2(">log2</button>
+        <button class="btn fn" data-insert="exp(" data-inv-label="ln" data-inv-insert="ln(">exp</button>
+        <button class="btn fn" data-insert="abs(" data-inv-label="abs" data-inv-insert="abs(">abs</button>
+      </div>
+    </div>
+
+    <p class="hint">
+      <b>Keys</b> 0-9 . + - * / ^ % ! ( ) &nbsp;|&nbsp;
+      <b>Enter</b> = &nbsp; <b>Esc</b> AC &nbsp; <b>Backspace</b> delete<br>
+      <b>Ops</b> + - * / ^ ( ) ! % &nbsp;<b>Funcs</b> sin cos tan asin acos atan sinh cosh tanh
+      ln log exp sqrt cbrt inv abs mod hypot root pow round &nbsp;<b>Consts</b> pi e tau phi ans
+    </p>
+  </section>
+
+  <aside class="side">
+    <h2>
+      <span>History</span>
+      <button id="clearHistory" type="button">Clear</button>
+    </h2>
+    <ul class="items" id="history"></ul>
+  </aside>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
